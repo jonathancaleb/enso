@@ -3,7 +3,7 @@ package com.example.enso.ui.transactions
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.enso.data.local.entity.Transaction
+import com.example.enso.data.local.entity.TransactionEntity
 import com.example.enso.di.AppModule
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +29,7 @@ class TransactionListViewModel(application: Application) : AndroidViewModel(appl
             _isSyncing.value = true
             _syncStatus.value = null
             try {
-                val count = repository.syncFromSms()
+                val count = repository.triggerSmsSync()
                 _syncStatus.value = SyncStatus(count)
             } finally {
                 _isSyncing.value = false
@@ -41,7 +41,7 @@ class TransactionListViewModel(application: Application) : AndroidViewModel(appl
         _syncStatus.value = null
     }
 
-    fun delete(transaction: Transaction) {
+    fun delete(transaction: TransactionEntity) {
         viewModelScope.launch {
             repository.deleteTransaction(transaction.id)
         }

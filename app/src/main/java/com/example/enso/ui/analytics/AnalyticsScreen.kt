@@ -55,7 +55,7 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel) {
     val totalReceived by viewModel.totalReceived.collectAsState()
 
     val incomingTypes = setOf("DEPOSIT", "AIRTEL_RECEIVED", "AIRTEL_INTEREST")
-    val spendingBreakdown = breakdown.filter { it.type.name !in incomingTypes }
+    val spendingBreakdown = breakdown.filter { it.type !in incomingTypes }
     val totalOfBreakdown = spendingBreakdown.sumOf { it.total }
 
     Column(
@@ -154,7 +154,7 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel) {
                         val pct = if (totalOfBreakdown > 0) (item.total / totalOfBreakdown * 100) else 0.0
                         LegendRow(
                             color = chartColors[index % chartColors.size],
-                            label = item.type.name.replace("_", " "),
+                            label = item.type.replace("_", " "),
                             amount = item.total, percentage = pct
                         )
                         if (index < spendingBreakdown.lastIndex) {

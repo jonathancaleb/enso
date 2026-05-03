@@ -2,26 +2,25 @@ package com.example.enso.data.repository
 
 import com.example.enso.data.local.TransactionDao
 import com.example.enso.data.local.TypeTotal
-import com.example.enso.data.local.entity.Transaction
-import com.example.enso.data.sms.MomoSmsParser
-import com.example.enso.data.sms.SmsReader
+import com.example.enso.data.local.entity.TransactionEntity
+import com.example.enso.data.sms.SmsImportService
 import kotlinx.coroutines.flow.Flow
 
 class TransactionRepository(
     private val dao: TransactionDao,
-    private val smsReader: SmsReader
+    private val importService: SmsImportService
 ) {
 
-    fun getAllTransactions(): Flow<List<Transaction>> = dao.getAllTransactions()
+    fun getAllTransactions(): Flow<List<TransactionEntity>> = dao.getAll()
 
-    fun getTransactionsByProvider(provider: String): Flow<List<Transaction>> =
-        dao.getTransactionsByProvider(provider)
+    fun getTransactionsByProvider(provider: String): Flow<List<TransactionEntity>> =
+        dao.getByProvider(provider)
 
-    fun getRecentTransactions(limit: Int = 5): Flow<List<Transaction>> =
-        dao.getRecentTransactions(limit)
+    fun getRecentTransactions(limit: Int = 5): Flow<List<TransactionEntity>> =
+        dao.getRecent(limit)
 
-    fun getTransactionsBetween(start: Long, end: Long): Flow<List<Transaction>> =
-        dao.getTransactionsBetween(start, end)
+    fun getTransactionsBetween(start: Long, end: Long): Flow<List<TransactionEntity>> =
+        dao.getByDateRange(start, end)
 
     fun getTypeTotals(start: Long, end: Long): Flow<List<TypeTotal>> =
         dao.getTypeTotals(start, end)
@@ -37,21 +36,11 @@ class TransactionRepository(
     fun getTotalReceivedByProvider(since: Long, provider: String): Flow<Double> =
         dao.getTotalReceivedByProvider(since, provider)
 
-    fun getTransactionCount(): Flow<Int> = dao.getTransactionCount()
+    fun getTransactionCount(): Flow<Int> = dao.getCount()
 
-    suspend fun syncFromSms(): Int {
-        val existingHashes = dao.getAllSmsHashes().toSet()
-        val rawMessages = smsReader.readMomoMessages()
-        val newTransactions = rawMessages
-            .mapNotNull { MomoSmsParser.parse(it) }
-            .filter { it.smsHash != null && it.smsHash !in existingHashes }
-        if (newTransactions.isNotEmpty()) {
-            dao.insertAll(newTransactions)
-        }
-        return newTransactions.size
-    }
+    suspend fun triggerSmsSync(): Int = importService.runImport()
 
-    suspend fun addManualTransaction(transaction: Transaction): Long =
+    suspend fun addManualTransaction(transaction: TransactionEntity): Long =
         dao.insert(transaction)
 
     suspend fun deleteTransaction(id: Long) = dao.deleteById(id)

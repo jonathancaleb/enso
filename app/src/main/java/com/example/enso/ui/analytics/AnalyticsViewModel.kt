@@ -25,7 +25,7 @@ enum class TimePeriod(val label: String) {
     THREE_MONTHS("3 Months")
 }
 
-enum class AnalyticsProviderFilter(val label: String, val provider: Provider?) {
+enum class AnalyticsProviderFilter(val label: String, val provider: String?) {
     ALL("All", null),
     MTN("MTN", Provider.MTN),
     AIRTEL("Airtel", Provider.AIRTEL)
@@ -46,21 +46,21 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
     @OptIn(ExperimentalCoroutinesApi::class)
     val breakdown: StateFlow<List<TypeTotal>> = filterState.flatMapLatest { (p, pf) ->
         val (start, end) = getBounds(p)
-        if (pf.provider != null) repository.getTypeTotalsByProvider(start, end, pf.provider.name)
+        if (pf.provider != null) repository.getTypeTotalsByProvider(start, end, pf.provider)
         else repository.getTypeTotals(start, end)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val totalSpent: StateFlow<Double> = filterState.flatMapLatest { (p, pf) ->
         val start = getBounds(p).first
-        if (pf.provider != null) repository.getTotalSpentByProvider(start, pf.provider.name)
+        if (pf.provider != null) repository.getTotalSpentByProvider(start, pf.provider)
         else repository.getTotalSpentSince(start)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val totalReceived: StateFlow<Double> = filterState.flatMapLatest { (p, pf) ->
         val start = getBounds(p).first
-        if (pf.provider != null) repository.getTotalReceivedByProvider(start, pf.provider.name)
+        if (pf.provider != null) repository.getTotalReceivedByProvider(start, pf.provider)
         else repository.getTotalReceivedSince(start)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 

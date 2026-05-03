@@ -49,7 +49,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.enso.data.local.entity.Transaction
+import com.example.enso.data.local.entity.TransactionEntity
 import com.example.enso.data.local.entity.TransactionType
 import com.example.enso.ui.theme.EnsoGreen
 import com.example.enso.util.DateUtils
@@ -318,7 +318,7 @@ private fun StatCard(label: String, amount: Double, modifier: Modifier = Modifie
 }
 
 @Composable
-private fun RecentTransactionRow(txn: Transaction) {
+private fun RecentTransactionRow(txn: TransactionEntity) {
     val isIncoming = txn.type in listOf(
         TransactionType.DEPOSIT, TransactionType.AIRTEL_RECEIVED, TransactionType.AIRTEL_INTEREST
     )

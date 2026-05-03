@@ -56,7 +56,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.enso.data.local.entity.Transaction
+import com.example.enso.data.local.entity.TransactionEntity
 import com.example.enso.data.local.entity.TransactionType
 import com.example.enso.ui.theme.EnsoGreen
 import com.example.enso.util.DateUtils
@@ -176,7 +176,7 @@ private fun SyncButton(isSyncing: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ExpandableTransactionRow(transaction: Transaction) {
+private fun ExpandableTransactionRow(transaction: TransactionEntity) {
     var expanded by remember { mutableStateOf(false) }
     val isIncoming = transaction.type in listOf(
         TransactionType.DEPOSIT, TransactionType.AIRTEL_RECEIVED, TransactionType.AIRTEL_INTEREST
@@ -215,7 +215,7 @@ private fun ExpandableTransactionRow(transaction: Transaction) {
                     )
                     Row {
                         Text(
-                            text = transaction.type.name.replace("_", " "),
+                            text = transaction.type.replace("_", " "),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
