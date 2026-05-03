@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.enso.data.local.entity.Provider
-import com.example.enso.data.local.entity.Transaction
+import com.example.enso.data.local.entity.TransactionEntity
 import com.example.enso.data.local.entity.TransactionType
 import com.example.enso.di.AppModule
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 data class EntryFormState(
     val amount: String = "",
     val description: String = "",
-    val type: TransactionType = TransactionType.TRANSFER_OUT,
+    val type: String = TransactionType.TRANSFER_OUT,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
     val error: String? = null
@@ -36,7 +36,7 @@ class ManualEntryViewModel(application: Application) : AndroidViewModel(applicat
         _state.value = _state.value.copy(description = value, error = null)
     }
 
-    fun updateType(type: TransactionType) {
+    fun updateType(type: String) {
         _state.value = _state.value.copy(type = type)
     }
 
@@ -55,13 +55,12 @@ class ManualEntryViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             _state.value = current.copy(isSaving = true)
             repository.addManualTransaction(
-                Transaction(
+                TransactionEntity(
                     provider = Provider.MANUAL,
                     type = current.type,
                     amount = amount,
                     description = current.description.trim(),
-                    date = System.currentTimeMillis(),
-                    isManual = true
+                    date = System.currentTimeMillis()
                 )
             )
             _state.value = EntryFormState(saved = true)

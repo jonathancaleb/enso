@@ -4,36 +4,41 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.example.enso.data.local.entity.Transaction
-import com.example.enso.data.local.entity.TransactionType
+import com.example.enso.data.local.entity.TransactionEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TransactionDao {
 
     @Query("SELECT * FROM transactions ORDER BY date DESC")
-    fun getAllTransactions(): Flow<List<Transaction>>
+    fun getAll(): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE date BETWEEN :start AND :end ORDER BY date DESC")
+    fun getByDateRange(start: Long, end: Long): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE type = :type ORDER BY date DESC")
+    fun getByType(type: String): Flow<List<TransactionEntity>>
 
     @Query("SELECT * FROM transactions WHERE provider = :provider ORDER BY date DESC")
-    fun getTransactionsByProvider(provider: String): Flow<List<Transaction>>
-
-    @Query("SELECT * FROM transactions WHERE date BETWEEN :startDate AND :endDate ORDER BY date DESC")
-    fun getTransactionsBetween(startDate: Long, endDate: Long): Flow<List<Transaction>>
-
-    @Query(
-        "SELECT type, SUM(amount) as total FROM transactions " +
-        "WHERE date BETWEEN :startDate AND :endDate GROUP BY type"
-    )
-    fun getTypeTotals(startDate: Long, endDate: Long): Flow<List<TypeTotal>>
-
-    @Query(
-        "SELECT type, SUM(amount) as total FROM transactions " +
-        "WHERE date BETWEEN :startDate AND :endDate AND provider = :provider GROUP BY type"
-    )
-    fun getTypeTotalsByProvider(startDate: Long, endDate: Long, provider: String): Flow<List<TypeTotal>>
+    fun getByProvider(provider: String): Flow<List<TransactionEntity>>
 
     @Query("SELECT * FROM transactions ORDER BY date DESC LIMIT :limit")
-    fun getRecentTransactions(limit: Int): Flow<List<Transaction>>
+    fun getRecent(limit: Int): Flow<List<TransactionEntity>>
+
+    @Query("SELECT COUNT(*) FROM transactions")
+    fun getCount(): Flow<Int>
+
+    @Query(
+        "SELECT type, SUM(amount) as total FROM transactions " +
+        "WHERE date BETWEEN :start AND :end GROUP BY type"
+    )
+    fun getTypeTotals(start: Long, end: Long): Flow<List<TypeTotal>>
+
+    @Query(
+        "SELECT type, SUM(amount) as total FROM transactions " +
+        "WHERE date BETWEEN :start AND :end AND provider = :provider GROUP BY type"
+    )
+    fun getTypeTotalsByProvider(start: Long, end: Long, provider: String): Flow<List<TypeTotal>>
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE date >= :since AND type NOT IN ('DEPOSIT', 'AIRTEL_RECEIVED', 'AIRTEL_INTEREST')")
     fun getTotalSpentSince(since: Long): Flow<Double>
@@ -48,22 +53,19 @@ interface TransactionDao {
     fun getTotalReceivedByProvider(since: Long, provider: String): Flow<Double>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(transaction: Transaction): Long
+    suspend fun insert(transaction: TransactionEntity): Long
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAll(transactions: List<Transaction>)
+    suspend fun insertAll(transactions: List<TransactionEntity>): List<Long>
 
-    @Query("SELECT smsHash FROM transactions WHERE smsHash IS NOT NULL")
-    suspend fun getAllSmsHashes(): List<String>
+    @Query("SELECT EXISTS(SELECT 1 FROM transactions WHERE transactionId IS NULL AND date = :date AND amount = :amount AND type = :type)")
+    suspend fun existsByComposite(date: Long, amount: Double, type: String): Boolean
 
     @Query("DELETE FROM transactions WHERE id = :id")
     suspend fun deleteById(id: Long)
-
-    @Query("SELECT COUNT(*) FROM transactions")
-    fun getTransactionCount(): Flow<Int>
 }
 
 data class TypeTotal(
-    val type: TransactionType,
+    val type: String,
     val total: Double
 )

@@ -8,7 +8,7 @@ experimental building.
 
 ## Why
 
-MTN and Airtel don't expose a developer API for personal transaction data. Your options as a user are to export a statement from the MoMo app, or browse your history inside the app itself neither of which gives you any freedom to actually work with the data.
+MTN and Airtel don't expose a developer API for personal transaction data. Your options as a user are to export a statement from the MoMo app, or browse your history inside the app itself neither of which gives you any freedom to actually work with the data.SMS confirmations are sent for every transaction anyway.
 
 I wanted to slice it however I want. See spending by category, by week, by transaction type. Understand where my money actually goes. SMS confirmations are sent for every transaction anyway, so Enso reads those and builds the history automatically no exports, no manual entry, no app switching.
 
