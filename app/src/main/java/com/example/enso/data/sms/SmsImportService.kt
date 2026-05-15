@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.enso.data.local.TransactionDao
 import com.example.enso.data.local.entity.TransactionEntity
+import com.example.enso.data.local.entity.TransactionType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -18,6 +19,7 @@ private const val TAG = "SmsImportService"
 val Context.ensoDataStore: DataStore<Preferences> by preferencesDataStore(name = "enso_prefs")
 
 private val SMS_IMPORTED_KEY = booleanPreferencesKey("sms_imported")
+private val ZERO_AMOUNT_ALLOWED_TYPES = TransactionType.zeroAmountAllowedTypes
 
 class SmsImportService(
     private val dao: TransactionDao,
@@ -50,6 +52,15 @@ class SmsImportService(
     }
 
     private suspend fun insertIfNew(entity: TransactionEntity): Boolean {
+        if (entity.amount <= 0.0 && entity.type !in ZERO_AMOUNT_ALLOWED_TYPES) {
+            Log.w(
+                TAG,
+                "Skipping parsed SMS with non-positive amount. provider=${entity.provider}, " +
+                    "type=${entity.type}, raw=${entity.rawMessage}"
+            )
+            return false
+        }
+
         if (entity.transactionId != null) {
             return dao.insert(entity) > 0
         }

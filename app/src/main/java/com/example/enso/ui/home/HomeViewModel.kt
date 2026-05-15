@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-enum class ProviderFilter(val label: String, val provider: String?) {
+enum class ProviderFilter(val label: String, val provider: Provider?) {
     ALL("All", null),
     MTN("MTN", Provider.MTN),
     AIRTEL("Airtel", Provider.AIRTEL)
@@ -38,35 +38,42 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val providerFilter: StateFlow<ProviderFilter> = _providerFilter.asStateFlow()
 
     private val todayStart = DateUtils.getDayStart(0)
-    private val weekStart = DateUtils.getWeekBounds(0).first
+    private val todayEnd = DateUtils.getDayStart(-1)
+    private val weekBounds = DateUtils.getWeekBounds(0)
+    private val weekStart = weekBounds.first
+    private val weekEnd = weekBounds.second
     private val monthStart = DateUtils.getMonthStart(0)
+    private val monthEnd = DateUtils.getMonthStart(-1)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val spentToday: StateFlow<Double> = _providerFilter.flatMapLatest { f ->
-        if (f.provider != null) repository.getTotalSpentByProvider(todayStart, f.provider)
-        else repository.getTotalSpentSince(todayStart)
+        if (f.provider != null) repository.getTotalSpentByProvider(todayStart, todayEnd, f.provider)
+        else repository.getTotalSpent(todayStart, todayEnd)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val spentThisWeek: StateFlow<Double> = _providerFilter.flatMapLatest { f ->
-        if (f.provider != null) repository.getTotalSpentByProvider(weekStart, f.provider)
-        else repository.getTotalSpentSince(weekStart)
+        if (f.provider != null) repository.getTotalSpentByProvider(weekStart, weekEnd, f.provider)
+        else repository.getTotalSpent(weekStart, weekEnd)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val spentThisMonth: StateFlow<Double> = _providerFilter.flatMapLatest { f ->
-        if (f.provider != null) repository.getTotalSpentByProvider(monthStart, f.provider)
-        else repository.getTotalSpentSince(monthStart)
+        if (f.provider != null) repository.getTotalSpentByProvider(monthStart, monthEnd, f.provider)
+        else repository.getTotalSpent(monthStart, monthEnd)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val receivedThisMonth: StateFlow<Double> = _providerFilter.flatMapLatest { f ->
-        if (f.provider != null) repository.getTotalReceivedByProvider(monthStart, f.provider)
-        else repository.getTotalReceivedSince(monthStart)
+        if (f.provider != null) repository.getTotalReceivedByProvider(monthStart, monthEnd, f.provider)
+        else repository.getTotalReceived(monthStart, monthEnd)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
-    val recentTransactions: StateFlow<List<TransactionEntity>> = repository.getRecentTransactions(5)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val recentTransactions: StateFlow<List<TransactionEntity>> = _providerFilter.flatMapLatest { f ->
+        if (f.provider != null) repository.getRecentTransactionsByProvider(f.provider, 5)
+        else repository.getRecentTransactions(5)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val transactionCount: StateFlow<Int> = repository.getTransactionCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)

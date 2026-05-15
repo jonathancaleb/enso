@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import java.util.Calendar
 
 enum class TimePeriod(val label: String) {
     TODAY("Today"),
@@ -25,7 +24,7 @@ enum class TimePeriod(val label: String) {
     THREE_MONTHS("3 Months")
 }
 
-enum class AnalyticsProviderFilter(val label: String, val provider: String?) {
+enum class AnalyticsProviderFilter(val label: String, val provider: Provider?) {
     ALL("All", null),
     MTN("MTN", Provider.MTN),
     AIRTEL("Airtel", Provider.AIRTEL)
@@ -52,38 +51,28 @@ class AnalyticsViewModel(application: Application) : AndroidViewModel(applicatio
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val totalSpent: StateFlow<Double> = filterState.flatMapLatest { (p, pf) ->
-        val start = getBounds(p).first
-        if (pf.provider != null) repository.getTotalSpentByProvider(start, pf.provider)
-        else repository.getTotalSpentSince(start)
+        val (start, end) = getBounds(p)
+        if (pf.provider != null) repository.getTotalSpentByProvider(start, end, pf.provider)
+        else repository.getTotalSpent(start, end)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val totalReceived: StateFlow<Double> = filterState.flatMapLatest { (p, pf) ->
-        val start = getBounds(p).first
-        if (pf.provider != null) repository.getTotalReceivedByProvider(start, pf.provider)
-        else repository.getTotalReceivedSince(start)
+        val (start, end) = getBounds(p)
+        if (pf.provider != null) repository.getTotalReceivedByProvider(start, end, pf.provider)
+        else repository.getTotalReceived(start, end)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0.0)
 
     fun setPeriod(p: TimePeriod) { _period.value = p }
     fun setProviderFilter(f: AnalyticsProviderFilter) { _providerFilter.value = f }
 
     private fun getBounds(p: TimePeriod): Pair<Long, Long> {
-        val now = System.currentTimeMillis()
         return when (p) {
-            TimePeriod.TODAY -> DateUtils.getDayStart(0) to now
+            TimePeriod.TODAY -> DateUtils.getDayStart(0) to DateUtils.getDayStart(-1)
             TimePeriod.WEEK -> DateUtils.getWeekBounds(0)
-            TimePeriod.MONTH -> DateUtils.getMonthStart(0) to now
-            TimePeriod.LAST_MONTH -> {
-                val start = DateUtils.getMonthStart(1)
-                val cal = Calendar.getInstance()
-                cal.set(Calendar.DAY_OF_MONTH, 1)
-                cal.set(Calendar.HOUR_OF_DAY, 0)
-                cal.set(Calendar.MINUTE, 0)
-                cal.set(Calendar.SECOND, 0)
-                cal.set(Calendar.MILLISECOND, 0)
-                start to (cal.timeInMillis - 1)
-            }
-            TimePeriod.THREE_MONTHS -> DateUtils.getMonthStart(2) to now
+            TimePeriod.MONTH -> DateUtils.getMonthStart(0) to DateUtils.getMonthStart(-1)
+            TimePeriod.LAST_MONTH -> DateUtils.getMonthStart(1) to DateUtils.getMonthStart(0)
+            TimePeriod.THREE_MONTHS -> DateUtils.getMonthStart(2) to DateUtils.getMonthStart(-1)
         }
     }
 }

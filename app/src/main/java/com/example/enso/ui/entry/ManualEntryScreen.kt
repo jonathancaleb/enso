@@ -90,7 +90,7 @@ fun ManualEntryScreen(
                     FilterChip(
                         selected = state.type == type,
                         onClick = { viewModel.updateType(type) },
-                        label = { Text(type.replace("_", " "), style = MaterialTheme.typography.labelMedium) },
+                        label = { Text(type.displayName, style = MaterialTheme.typography.labelMedium) },
                         shape = RoundedCornerShape(20.dp),
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,

@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.enso.data.local.TypeTotal
+import com.example.enso.data.local.entity.TransactionType
 
 private val chartColors = listOf(
     Color(0xFFD97757), Color(0xFF6B9F78), Color(0xFF5B8CB8), Color(0xFFD4A853),
@@ -54,7 +55,7 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel) {
     val totalSpent by viewModel.totalSpent.collectAsState()
     val totalReceived by viewModel.totalReceived.collectAsState()
 
-    val incomingTypes = setOf("DEPOSIT", "AIRTEL_RECEIVED", "AIRTEL_INTEREST")
+    val incomingTypes = TransactionType.incomingTypes.toSet()
     val spendingBreakdown = breakdown.filter { it.type !in incomingTypes }
     val totalOfBreakdown = spendingBreakdown.sumOf { it.total }
 
@@ -154,7 +155,7 @@ fun AnalyticsScreen(viewModel: AnalyticsViewModel) {
                         val pct = if (totalOfBreakdown > 0) (item.total / totalOfBreakdown * 100) else 0.0
                         LegendRow(
                             color = chartColors[index % chartColors.size],
-                            label = item.type.replace("_", " "),
+                            label = item.type.displayName,
                             amount = item.total, percentage = pct
                         )
                         if (index < spendingBreakdown.lastIndex) {

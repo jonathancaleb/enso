@@ -319,9 +319,7 @@ private fun StatCard(label: String, amount: Double, modifier: Modifier = Modifie
 
 @Composable
 private fun RecentTransactionRow(txn: TransactionEntity) {
-    val isIncoming = txn.type in listOf(
-        TransactionType.DEPOSIT, TransactionType.AIRTEL_RECEIVED, TransactionType.AIRTEL_INTEREST
-    )
+    val isIncoming = txn.type in TransactionType.incomingTypes
     val iconBg = if (isIncoming) EnsoGreen.copy(alpha = 0.1f)
         else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
     val iconTint = if (isIncoming) EnsoGreen else MaterialTheme.colorScheme.primary
