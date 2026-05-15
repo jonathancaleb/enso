@@ -73,7 +73,7 @@ object MomoSmsParser {
         return result?.copy(rawMessage = body)
     }
 
-    private fun resolveProvider(sender: String): String? {
+    private fun resolveProvider(sender: String): Provider? {
         if (sender.contains("MTN", ignoreCase = true)) return Provider.MTN
         if (sender.equals("AirtelMoney", ignoreCase = true) ||
             sender.equals("Airtel", ignoreCase = true)) return Provider.AIRTEL

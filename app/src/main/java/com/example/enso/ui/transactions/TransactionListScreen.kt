@@ -178,9 +178,7 @@ private fun SyncButton(isSyncing: Boolean, onClick: () -> Unit) {
 @Composable
 private fun ExpandableTransactionRow(transaction: TransactionEntity) {
     var expanded by remember { mutableStateOf(false) }
-    val isIncoming = transaction.type in listOf(
-        TransactionType.DEPOSIT, TransactionType.AIRTEL_RECEIVED, TransactionType.AIRTEL_INTEREST
-    )
+    val isIncoming = transaction.type in TransactionType.incomingTypes
     val iconBg = if (isIncoming) EnsoGreen.copy(alpha = 0.1f)
         else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
     val iconTint = if (isIncoming) EnsoGreen else MaterialTheme.colorScheme.primary
@@ -215,7 +213,7 @@ private fun ExpandableTransactionRow(transaction: TransactionEntity) {
                     )
                     Row {
                         Text(
-                            text = transaction.type.replace("_", " "),
+                            text = transaction.type.displayName,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -246,7 +244,7 @@ private fun ExpandableTransactionRow(transaction: TransactionEntity) {
                     if (transaction.transactionId != null) {
                         DetailRow("ID", transaction.transactionId)
                     }
-                    DetailRow("Provider", transaction.provider.name)
+                    DetailRow("Provider", transaction.provider.dbValue)
                     if (transaction.fee > 0) {
                         DetailRow("Fee", "UGX ${String.format("%,.0f", transaction.fee)}")
                     }
@@ -255,7 +253,7 @@ private fun ExpandableTransactionRow(transaction: TransactionEntity) {
                     }
                     DetailRow("Date", DateUtils.formatDate(transaction.date))
 
-                    if (!transaction.rawSms.isNullOrBlank()) {
+                    if (transaction.rawMessage.isNotBlank()) {
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = "Raw SMS",
@@ -264,7 +262,7 @@ private fun ExpandableTransactionRow(transaction: TransactionEntity) {
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = transaction.rawSms,
+                            text = transaction.rawMessage,
                             style = MaterialTheme.typography.bodySmall,
                             fontFamily = FontFamily.Monospace,
                             fontSize = 11.sp,

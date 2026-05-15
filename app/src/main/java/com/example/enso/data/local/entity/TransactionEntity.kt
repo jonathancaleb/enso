@@ -4,27 +4,46 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
-object Provider {
-    const val MTN = "MTN"
-    const val AIRTEL = "AIRTEL"
-    const val MANUAL = "MANUAL"
+enum class Provider(val dbValue: String) {
+    MTN("MTN"),
+    AIRTEL("AIRTEL"),
+    MANUAL("MANUAL"),
+    UNKNOWN("UNKNOWN");
+
+    companion object {
+        fun fromDbValue(value: String): Provider {
+            return entries.firstOrNull { it.dbValue == value } ?: UNKNOWN
+        }
+    }
 }
 
-object TransactionType {
-    const val WITHDRAWAL = "WITHDRAWAL"
-    const val DEPOSIT = "DEPOSIT"
-    const val TRANSFER_OUT = "TRANSFER_OUT"
-    const val MERCHANT_PAYMENT = "MERCHANT_PAYMENT"
-    const val BUNDLE_PURCHASE = "BUNDLE_PURCHASE"
-    const val MOMO_ADVANCE = "MOMO_ADVANCE"
-    const val OVERDRAFT_REPAY = "OVERDRAFT_REPAY"
-    const val ELECTRICITY = "ELECTRICITY"
-    const val LOAN_COLLECTION = "LOAN_COLLECTION"
-    const val AIRTEL_SENT = "AIRTEL_SENT"
-    const val AIRTEL_RECEIVED = "AIRTEL_RECEIVED"
-    const val AIRTEL_PAYMENT = "AIRTEL_PAYMENT"
-    const val AIRTEL_INTEREST = "AIRTEL_INTEREST"
-    const val UNKNOWN = "UNKNOWN"
+enum class TransactionType(val dbValue: String) {
+    WITHDRAWAL("WITHDRAWAL"),
+    DEPOSIT("DEPOSIT"),
+    TRANSFER_OUT("TRANSFER_OUT"),
+    MERCHANT_PAYMENT("MERCHANT_PAYMENT"),
+    BUNDLE_PURCHASE("BUNDLE_PURCHASE"),
+    MOMO_ADVANCE("MOMO_ADVANCE"),
+    OVERDRAFT_REPAY("OVERDRAFT_REPAY"),
+    ELECTRICITY("ELECTRICITY"),
+    LOAN_COLLECTION("LOAN_COLLECTION"),
+    AIRTEL_SENT("AIRTEL_SENT"),
+    AIRTEL_RECEIVED("AIRTEL_RECEIVED"),
+    AIRTEL_PAYMENT("AIRTEL_PAYMENT"),
+    AIRTEL_INTEREST("AIRTEL_INTEREST"),
+    UNKNOWN("UNKNOWN");
+
+    val displayName: String
+        get() = dbValue.replace("_", " ")
+
+    companion object {
+        val incomingTypes = listOf(DEPOSIT, AIRTEL_RECEIVED, AIRTEL_INTEREST)
+        val zeroAmountAllowedTypes = setOf(AIRTEL_INTEREST)
+
+        fun fromDbValue(value: String): TransactionType {
+            return entries.firstOrNull { it.dbValue == value } ?: UNKNOWN
+        }
+    }
 }
 
 @Entity(
@@ -33,8 +52,8 @@ object TransactionType {
 )
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val provider: String,
-    val type: String,
+    val provider: Provider,
+    val type: TransactionType,
     val amount: Double,
     val fee: Double = 0.0,
     val balance: Double? = null,

@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 data class EntryFormState(
     val amount: String = "",
     val description: String = "",
-    val type: String = TransactionType.TRANSFER_OUT,
+    val type: TransactionType = TransactionType.TRANSFER_OUT,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
     val error: String? = null
@@ -36,7 +36,7 @@ class ManualEntryViewModel(application: Application) : AndroidViewModel(applicat
         _state.value = _state.value.copy(description = value, error = null)
     }
 
-    fun updateType(type: String) {
+    fun updateType(type: TransactionType) {
         _state.value = _state.value.copy(type = type)
     }
 
